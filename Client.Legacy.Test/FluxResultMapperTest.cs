@@ -161,6 +161,29 @@ namespace Client.Legacy.Test
         }
 
         [Test]
+        public void DateTimeOffsetTimestamp()
+        {
+            var expectedTime = Instant.FromDateTimeOffset(DateTimeOffset.UtcNow);
+
+            var record = new FluxRecord(0)
+            {
+                Values =
+                {
+                    ["tag"] = "test",
+                    ["value"] = 20D,
+                    ["_time"] = expectedTime
+                }
+            };
+
+            var poco = _parser.ToPoco<DateTimeOffsetTimestampPoco>(record);
+
+            Assert.AreEqual("test", poco.Tag);
+            Assert.AreEqual(20D, poco.Value);
+            Assert.NotNull(poco.Time);
+            Assert.AreEqual(expectedTime, Instant.FromDateTimeOffset(poco.Time));
+        }
+
+        [Test]
         public void NumberConversion()
         {
             var record = new FluxRecord(0)
@@ -237,6 +260,16 @@ namespace Client.Legacy.Test
             [Column("value")] public double Value { get; set; }
 
             [Column(IsTimestamp = true)] public DateTime? Time { get; set; }
+        }
+        
+        [Measurement("poco")]
+        private class DateTimeOffsetTimestampPoco
+        {
+            [Column("tag", IsTag = true)] public string Tag { get; set; }
+
+            [Column("value")] public double Value { get; set; }
+
+            [Column(IsTimestamp = true)] public DateTimeOffset Time { get; set; }
         }
 
         [Measurement("poco")]

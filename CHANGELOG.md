@@ -2,6 +2,7 @@
 
 ### Features
 1. [#528](https://github.com/influxdata/influxdb-client-csharp/pull/528): Add HttpClient as a part of InfluxDBClientOptions
+2. Add support for DateTimeOffset in Poco definitions
 
 ### Dependencies
 Update dependencies:

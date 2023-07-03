@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using InfluxDB.Client.Core.Exceptions;
 using InfluxDB.Client.Core.Flux.Domain;
 using NodaTime;
+using DateTimeOffset = System.DateTimeOffset;
 
 [assembly: InternalsVisibleTo("Client.Legacy.Test, PublicKey=00240000048000009400000006020000002400005" +
                               "25341310004000001000100efaac865f88dd35c90dc548945405aae34056eedbe42cad60971f89a861a78" +
@@ -154,6 +155,12 @@ namespace InfluxDB.Client.Core.Flux.Internal
                     property.SetValue(poco, ToDateTimeValue(value));
                     return;
                 }
+                
+                if (propertyType == typeof(DateTimeOffset))
+                {
+                    property.SetValue(poco, ToDateTimeOffsetValue(value));
+                    return;
+                }
 
                 if (propertyType == typeof(Instant))
                 {
@@ -249,6 +256,27 @@ namespace InfluxDB.Client.Core.Flux.Internal
             throw new InvalidCastException(
                 $"Object value of type {value.GetType().Name} cannot be converted to {nameof(DateTime)}");
         }
+        
+        private DateTimeOffset ToDateTimeOffsetValue(object value)
+        {
+            if (value is DateTimeOffset dateTime)
+            {
+                return dateTime;
+            }
+
+            if (value is Instant instant)
+            {
+                return instant.InUtc().ToDateTimeOffset();
+            }
+
+            if (value is IConvertible)
+            {
+                return (DateTimeOffset)Convert.ChangeType(value, typeof(DateTimeOffset));
+            }
+
+            throw new InvalidCastException(
+                $"Object value of type {value.GetType().Name} cannot be converted to {nameof(DateTimeOffset)}");
+        }
 
         private Instant ToInstantValue(object value)
         {
@@ -260,6 +288,11 @@ namespace InfluxDB.Client.Core.Flux.Internal
             if (value is DateTime dateTime)
             {
                 return Instant.FromDateTimeUtc(dateTime);
+            }
+            
+            if (value is DateTimeOffset dateTimeOffset)
+            {
+                return Instant.FromDateTimeOffset(dateTimeOffset);
             }
 
             throw new InvalidCastException(
